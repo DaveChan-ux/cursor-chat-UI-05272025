@@ -42,17 +42,17 @@ interface Reaction {
 
 const initialMessages: Message[] = [
   {
-    id: 1,
+    id: "1",
     text: 'Different topic - this is a wonderful reminder that "overnight success stories" rarely (never?) exist. I had no idea Varley, one of my favorite brands, has been around for 10 years. Love seeing them grow ❤',
     date: "Jan 21 11:00PM",
   },
   {
-    id: 2,
+    id: "2",
     text: "You know, it's funny how we often think success happens overnight. It's a great reminder that it usually takes years of hard work behind the scenes. I just found out that Varley, one of my go-to brands, has been hustling for a whole decade! It's so inspiring to watch their journey unfold ❤",
     reactions: [{ emoji: "🔥", count: 12 }],
   },
   {
-    id: 3,
+    id: "3",
     text: "Isn't it fascinating how we often overlook the hurdles that creators face on their journey? It's a crucial reminder that true success is built on perseverance and hard work. I'm here to support you with tips and insights to navigate these challenges and thrive in your creative endeavors!",
     date: "Yesterday 11:00PM",
     reactions: [
@@ -62,16 +62,16 @@ const initialMessages: Message[] = [
     ],
   },
   {
-    id: 4,
+    id: "4",
     text: "Creating something special takes time and effort. If you're looking for some great finds, check out my Amazon link: someproduct.amazon.com. You never know what inspiration you might discover!",
     date: "Today 11:00PM",
   },
   {
-    id: 5,
+    id: "5",
     text: "Let's talk about the creative process! It's all about experimenting and finding your unique style. Speaking of style, check out this cool piece I found at Zara: http://rstyle.me/+CnhzlmtS5lhipvCxGecF_w",
   },
   {
-    id: 6,
+    id: "6",
     text: "Shop this link from Zara http://rstyle.me/+CnhzlmtS5lhipvCxGecF_w",
     date: "Today 12:00AM",
     hasLink: true,
@@ -81,7 +81,7 @@ const initialMessages: Message[] = [
 export const PrototypeC = (): JSX.Element => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState("");
-  const [selectedMedia, setSelectedMedia] = useState<Media[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -90,38 +90,37 @@ export const PrototypeC = (): JSX.Element => {
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    
-    files.forEach(file => {
+    const file = event.target.files?.[0];
+    if (file && !selectedMedia) {
       const url = URL.createObjectURL(file);
       const type = file.type.startsWith('image/') ? 'image' : 'video';
-      
-      setSelectedMedia(prev => [...prev, { url, type, file }]);
-    });
+      setSelectedMedia({ url, type, file });
+    } else if (file && selectedMedia) {
+      // If there's already a selected media, replace it with the new one
+      URL.revokeObjectURL(selectedMedia.url); // Clean up the old URL
+      const url = URL.createObjectURL(file);
+      const type = file.type.startsWith('image/') ? 'image' : 'video';
+      setSelectedMedia({ url, type, file });
+    }
   };
 
-  const handleRemoveMedia = (index: number) => {
-    setSelectedMedia(prev => {
-      const newMedia = [...prev];
-      URL.revokeObjectURL(newMedia[index].url);
-      newMedia.splice(index, 1);
-      return newMedia;
-    });
+  const handleRemoveMedia = () => {
+    setSelectedMedia(null);
   };
 
   const handleSendMessage = () => {
-    if (!newMessage.trim() && selectedMedia.length === 0) return;
+    if (!newMessage.trim() && !selectedMedia) return;
 
     const message: Message = {
-      id: messages.length + 1,
-      text: newMessage.trim() || undefined,
-      date: new Date().toLocaleString(),
-      media: selectedMedia.map(({ url, type }) => ({ url, type })),
+      id: uuidv4(),
+      text: newMessage.trim(),
+      timestamp: Date.now(),
+      media: selectedMedia ? [{ url: selectedMedia.url, type: selectedMedia.type }] : undefined,
     };
 
-    setMessages([...messages, message]);
+    setMessages(prev => [...prev, message]);
     setNewMessage("");
-    setSelectedMedia([]);
+    setSelectedMedia(null);
     setTimeout(scrollToBottom, 100);
   };
 
@@ -266,9 +265,12 @@ export const PrototypeC = (): JSX.Element => {
       </div>
 
       {/* Media Preview */}
-      {selectedMedia.length > 0 && (
+      {selectedMedia && (
         <div className="flex-none border-t border-[#e2e3e9]">
-          <MediaPreview media={selectedMedia} onRemove={handleRemoveMedia} />
+          <MediaPreview
+            media={[selectedMedia]}
+            onRemove={handleRemoveMedia}
+          />
         </div>
       )}
 
@@ -279,7 +281,6 @@ export const PrototypeC = (): JSX.Element => {
             type="file"
             ref={fileInputRef}
             className="hidden"
-            multiple
             accept="image/*,video/*"
             onChange={handleFileSelect}
           />
