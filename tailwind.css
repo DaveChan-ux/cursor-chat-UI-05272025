@@ -44,6 +44,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove outline on focus for all input elements */
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

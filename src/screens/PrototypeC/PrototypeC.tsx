@@ -16,7 +16,7 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { MediaGrid } from "../../components/ui/media-grid";
-import { MediaPreview } from "../../components/ui/media-preview";
+
 
 interface Media {
   url: string;
@@ -169,7 +169,7 @@ export const PrototypeC = (): JSX.Element => {
 
       {/* Messages Container */}
       <div className="flex-1 flex flex-col w-full items-end gap-4 pt-2 pb-0 pr-4 overflow-y-scroll scrollbar-none">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <React.Fragment key={message.id}>
             {message.date && (
               <div className="relative self-stretch mt-[-1.00px] font-supporting-caption-02 font-[number:var(--supporting-caption-02-font-weight)] text-[#9b9fb0] text-[length:var(--supporting-caption-02-font-size)] text-center tracking-[var(--supporting-caption-02-letter-spacing)] leading-[var(--supporting-caption-02-line-height)] [font-style:var(--supporting-caption-02-font-style)]">
@@ -205,9 +205,9 @@ export const PrototypeC = (): JSX.Element => {
 
                   {message.reactions && message.reactions.length > 0 && (
                     <div className="inline-flex items-start gap-2 relative">
-                      {message.reactions.map((reaction, rIndex) => (
+                      {message.reactions.map((reaction) => (
                         <Badge
-                          key={rIndex}
+                          key={reaction.emoji}
                           variant="outline"
                           className="inline-flex items-center gap-0.5 px-2 py-0 relative self-stretch bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9]"
                         >
@@ -221,16 +221,6 @@ export const PrototypeC = (): JSX.Element => {
                           )}
                         </Badge>
                       ))}
-
-                      <div className="inline-flex items-start gap-2 relative self-stretch">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="inline-flex items-center gap-0.5 px-2 py-0 relative self-stretch bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9] h-auto"
-                        >
-                          <SmilePlusIcon className="w-5 h-5" />
-                        </Button>
-                      </div>
                     </div>
                   )}
 
@@ -253,7 +243,7 @@ export const PrototypeC = (): JSX.Element => {
                   <AvatarImage
                     src="/ellipse-1-5.png"
                     alt="User avatar"
-                    className="w-6 h-6 top-[3px] left-[3px] object-cover absolute rounded-full"
+                    className="w-6 h-6 object-cover rounded-full"
                   />
                   <AvatarFallback>MT</AvatarFallback>
                 </Avatar>
@@ -264,19 +254,9 @@ export const PrototypeC = (): JSX.Element => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Media Preview */}
-      {selectedMedia && (
-        <div className="flex-none border-t border-[#e2e3e9]">
-          <MediaPreview
-            media={[selectedMedia]}
-            onRemove={handleRemoveMedia}
-          />
-        </div>
-      )}
-
       {/* Message Input */}
-      <div className="flex-none h-[72px] flex w-full items-center justify-around gap-2 p-4 bg-white border-t border-[#e2e3e9]">
-        <div className="flex w-full items-center gap-2">
+      <div className="flex-none flex w-full items-end justify-between gap-2 p-4 bg-white border-t border-[#e2e3e9]" style={{height: selectedMedia || newMessage.length > 0 ? 'auto' : '72px'}}>
+        <div className="flex w-full items-end gap-2">
           <input
             type="file"
             ref={fileInputRef}
@@ -287,7 +267,7 @@ export const PrototypeC = (): JSX.Element => {
           <Button
             variant="ghost"
             size="icon"
-            className="flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0"
+            className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#eeeff2] rounded-[100px]">
@@ -295,19 +275,45 @@ export const PrototypeC = (): JSX.Element => {
             </div>
           </Button>
 
-          <Input
-            placeholder="Create a chat message"
-            className="flex h-10 items-center gap-2 px-4 py-2 flex-1 bg-[#f9f9fb] rounded-[100px] border border-solid border-[#e2e3e9]"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
+          <div className={`flex-1 bg-[#f9f9fb] border border-solid border-[#e2e3e9] ${selectedMedia || newMessage.length > 0 ? 'rounded-[16px]' : 'rounded-[40px]'} transition-all duration-200`}>
+            <div className="flex flex-col gap-2 p-2 h-auto min-h-[30px] justify-end">
+              {selectedMedia && (
+                <div className="relative flex-shrink-0 w-12 h-auto rounded-lg overflow-hidden">
+                  {selectedMedia.type === 'image' ? (
+                    <img src={selectedMedia.url} alt="Preview" className="w-full h-auto object-contain" />
+                  ) : (
+                    <video src={selectedMedia.url} className="w-full h-auto object-contain" />
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-0.5 right-0.5 w-6 h-6 p-0.5 bg-black/20 hover:bg-black/40"
+                    onClick={handleRemoveMedia}
+                    tabIndex={-1}
+                  >
+                    <span className="sr-only">Remove media</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x w-4 h-4 text-white"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                  </Button>
+                </div>
+              )}
+              <div className="flex-1">
+                <Input
+                  placeholder="Create a chat message"
+                  className="flex-1 bg-transparent outline-none border-none text-sm md:text-xs min-h-[30px] h-auto p-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                />
+              </div>
+            </div>
+          </div>
 
           <Button
             variant="ghost"
             size="icon"
-            className="flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0"
+            className="flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
             onClick={handleSendMessage}
+            disabled={!newMessage.trim() && !selectedMedia}
           >
             <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#c3c3c6] rounded-[100px]">
               <ArrowUpIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
