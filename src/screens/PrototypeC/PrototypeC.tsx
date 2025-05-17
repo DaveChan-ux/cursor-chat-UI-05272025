@@ -143,7 +143,7 @@ export const PrototypeC = (): JSX.Element => {
 
             <div className="flex items-center justify-center gap-2.5 relative flex-1 grow">
               <div className="inline-flex items-center gap-1 relative">
-                <Avatar className="w-[30px] h-[30px] rounded-full">
+                <Avatar className="w-[30px] h-[30px] rounded-full self-end">
                   <AvatarImage
                     src="/ellipse-1-5.png"
                     alt="User avatar"
@@ -178,7 +178,8 @@ export const PrototypeC = (): JSX.Element => {
             )}
 
             <div className="flex flex-col w-[312px] items-start gap-2 relative">
-              <div className="flex items-start gap-2 relative self-stretch w-full">
+              {/* Row: Message, Avatar, and Emoji button, bottom-aligned and right-aligned */}
+              <div className="flex flex-row items-end gap-2 relative self-stretch w-full justify-end">
                 <div className="flex flex-col items-end gap-2 relative flex-1 grow">
                   <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 relative ml-[-6.00px] bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
                     {message.hasLink ? (
@@ -202,44 +203,8 @@ export const PrototypeC = (): JSX.Element => {
                       </div>
                     )}
                   </Card>
-
-                  {message.reactions && message.reactions.length > 0 && (
-                    <div className="inline-flex items-start gap-2 relative">
-                      {message.reactions.map((reaction) => (
-                        <Badge
-                          key={reaction.emoji}
-                          variant="outline"
-                          className="inline-flex items-center gap-0.5 px-2 py-0 relative self-stretch bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9]"
-                        >
-                          <span className="relative w-fit mt-[-1.00px] font-body-body-01 font-[number:var(--body-body-01-font-weight)] text-[#b60d9a] text-[length:var(--body-body-01-font-size)] tracking-[var(--body-body-01-letter-spacing)] leading-[var(--body-body-01-line-height)] whitespace-nowrap [font-style:var(--body-body-01-font-style)]">
-                            {reaction.emoji}
-                          </span>
-                          {reaction.count && (
-                            <span className="relative w-fit font-supporting-caption-02 font-[number:var(--supporting-caption-02-font-weight)] text-gray-950 text-[length:var(--supporting-caption-02-font-size)] tracking-[var(--supporting-caption-02-letter-spacing)] leading-[var(--supporting-caption-02-line-height)] whitespace-nowrap [font-style:var(--supporting-caption-02-font-style)]">
-                              {reaction.count}
-                            </span>
-                          )}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {!message.reactions && (
-                    <div className="inline-flex items-start gap-2 relative">
-                      <div className="inline-flex items-start gap-2 relative self-stretch">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="inline-flex items-center gap-0.5 px-2 py-0 relative self-stretch bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9] h-auto"
-                        >
-                          <SmilePlusIcon className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
                 </div>
-
-                <Avatar className="w-[30px] h-[30px] rounded-full">
+                <Avatar className="w-[30px] h-[30px] rounded-full self-end">
                   <AvatarImage
                     src="/ellipse-1-5.png"
                     alt="User avatar"
@@ -247,6 +212,37 @@ export const PrototypeC = (): JSX.Element => {
                   />
                   <AvatarFallback>MT</AvatarFallback>
                 </Avatar>
+              </div>
+              {/* Emoji button/reactions, in a new row below the card (but not below avatar), right-aligned */}
+              <div className="flex flex-row justify-end w-full mt-1 pr-[42px]">
+                {message.reactions && message.reactions.length > 0 ? (
+                  <div className="inline-flex items-end gap-2 relative">
+                    {message.reactions.map((reaction) => (
+                      <Badge
+                        key={reaction.emoji}
+                        variant="outline"
+                        className="inline-flex items-center gap-0.5 px-2 py-0 relative self-stretch bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9]"
+                      >
+                        <span className="relative w-fit mt-[-1.00px] font-body-body-01 font-[number:var(--body-body-01-font-weight)] text-[#b60d9a] text-[length:var(--body-body-01-font-size)] tracking-[var(--body-body-01-letter-spacing)] leading-[var(--body-body-01-line-height)] whitespace-nowrap [font-style:var(--body-body-01-font-style)]">
+                          {reaction.emoji}
+                        </span>
+                        {reaction.count && (
+                          <span className="relative w-fit font-supporting-caption-02 font-[number:var(--supporting-caption-02-font-weight)] text-gray-950 text-[length:var(--supporting-caption-02-font-size)] tracking-[var(--supporting-caption-02-letter-spacing)] leading-[var(--supporting-caption-02-line-height)] whitespace-nowrap [font-style:var(--supporting-caption-02-font-style)]">
+                            {reaction.count}
+                          </span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="inline-flex items-center gap-0.5 px-2 py-0 bg-[#f9f9fb] rounded-[80px] border border-solid border-[#e2e3e9] h-auto self-end"
+                  >
+                    <SmilePlusIcon className="w-5 h-5" />
+                  </Button>
+                )}
               </div>
             </div>
           </React.Fragment>
