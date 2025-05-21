@@ -4,7 +4,7 @@ import {
   PaperclipIcon,
   SmilePlusIcon,
 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import {
   Avatar,
@@ -78,12 +78,30 @@ const initialMessages: Message[] = [
   },
 ];
 
+export const placeholderPrompts = [
+  "Create a chat message",
+  "Send an LTK or rstyle link",
+  "Share a day in the life or a weekly recap",
+  "Share a quote that resonated with you",
+  "Provide book or movie recommendations",
+  "Share reflections, milestones, or random funny moments",
+];
+
 export const PrototypeC = (): JSX.Element => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [newMessage, setNewMessage] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Cycle placeholder index every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholderPrompts.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -176,13 +194,25 @@ export const PrototypeC = (): JSX.Element => {
                 {message.date}
               </div>
             )}
-
             <div className="flex flex-col w-[312px] items-start gap-2 relative">
               {/* Row: Message, Avatar, and Emoji button, bottom-aligned and right-aligned */}
               <div className="flex flex-row items-end gap-2 relative self-stretch w-full justify-end">
                 <div className="flex flex-col items-end gap-2 relative flex-1 grow">
-                  <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 relative ml-[-6.00px] bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
-                    {message.hasLink ? (
+                  {message.media && message.text ? (
+                    <>
+                      {/* Media Card */}
+                      <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
+                        <MediaGrid media={message.media} className="w-full" />
+                      </Card>
+                      {/* Text Card stacked below */}
+                      <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
+                        <div className="relative flex-1 mt-[-1.00px] font-body-body-02 font-[number:var(--body-body-02-font-weight)] text-[#5e6278] text-[length:var(--body-body-02-font-size)] tracking-[var(--body-body-02-letter-spacing)] leading-[var(--body-body-02-line-height)] [font-style:var(--body-body-02-font-style)]">
+                          {message.text}
+                        </div>
+                      </Card>
+                    </>
+                  ) : message.hasLink ? (
+                    <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
                       <div className="relative flex-1 mt-[-1.00px] [font-family:'Sofia_Pro-Regular',Helvetica] font-normal text-transparent text-sm tracking-[0] leading-[14px]">
                         <span className="text-[#5e6278] leading-[22px]">
                           Shop this link from Zara{" "}
@@ -191,18 +221,18 @@ export const PrototypeC = (): JSX.Element => {
                           http://rstyle.me/+CnhzlmtS5lhipvCxGecF_w
                         </span>
                       </div>
-                    ) : message.media ? (
-                      <MediaGrid
-                        media={message.media}
-                        text={message.text}
-                        className="w-full"
-                      />
-                    ) : (
+                    </Card>
+                  ) : message.media ? (
+                    <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
+                      <MediaGrid media={message.media} className="w-full" />
+                    </Card>
+                  ) : (
+                    <Card className="inline-flex max-w-[280px] items-center justify-center gap-2.5 p-2 bg-[#f9f9fb] rounded-lg border border-solid border-[#e2e3e9] shadow-none">
                       <div className="relative flex-1 mt-[-1.00px] font-body-body-02 font-[number:var(--body-body-02-font-weight)] text-[#5e6278] text-[length:var(--body-body-02-font-size)] tracking-[var(--body-body-02-letter-spacing)] leading-[var(--body-body-02-line-height)] [font-style:var(--body-body-02-font-style)]">
                         {message.text}
                       </div>
-                    )}
-                  </Card>
+                    </Card>
+                  )}
                 </div>
                 <Avatar className="w-[30px] h-[30px] rounded-full self-end">
                   <AvatarImage
@@ -294,7 +324,7 @@ export const PrototypeC = (): JSX.Element => {
               )}
               <div className="flex-1">
                 <Input
-                  placeholder="Create a chat message"
+                  placeholder={placeholderPrompts[placeholderIndex]}
                   className="flex-1 bg-transparent outline-none border-none text-sm md:text-xs min-h-[30px] h-auto p-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
