@@ -82,9 +82,9 @@ export const placeholderPrompts = [
   "Create a chat message",
   "Send an LTK or rstyle link",
   "Share a day in the life",
-  "Share a quote that resonated with you",
-  "Provide book or movie recommendations",
-  "Share reflections or funny moments",
+  "Share a quote",
+  "Share a book or movie rec",
+  "Share funny moments",
 ];
 
 export const PrototypeC = (): JSX.Element => {
@@ -92,22 +92,46 @@ export const PrototypeC = (): JSX.Element => {
   const [newMessage, setNewMessage] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [typedLength, setTypedLength] = useState(0);
+  const [cycleCount, setCycleCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cycle placeholder index every 2.5 seconds, with fade in/out
+  // Typewriter effect for placeholder
   useEffect(() => {
-    const fadeOut = setTimeout(() => setFade(false), 2000); // start fade out before change
-    const changePrompt = setTimeout(() => {
-      setPlaceholderIndex((prev) => (prev + 1) % placeholderPrompts.length);
-      setFade(true);
-    }, 2500);
-    return () => {
-      clearTimeout(fadeOut);
-      clearTimeout(changePrompt);
-    };
-  }, [placeholderIndex]);
+    // If cycling is complete and we're not on the first prompt, reset to first prompt and type it out
+    if (cycleCount >= 2) {
+      if (placeholderIndex !== 0) {
+        setPlaceholderIndex(0);
+        setTypedLength(0);
+      } else if (typedLength < placeholderPrompts[0].length) {
+        const timeout = setTimeout(() => {
+          setTypedLength((len) => len + 1);
+        }, 50);
+        return () => clearTimeout(timeout);
+      }
+      // Stop cycling after typing out the first prompt
+      return;
+    }
+    const currentPrompt = placeholderPrompts[placeholderIndex];
+    if (typedLength < currentPrompt.length) {
+      const timeout = setTimeout(() => {
+        setTypedLength((len) => len + 1);
+      }, 50); // Typing speed per letter
+      return () => clearTimeout(timeout);
+    } else {
+      // Wait before cycling to next prompt
+      const waitTimeout = setTimeout(() => {
+        setTypedLength(0);
+        setPlaceholderIndex((prev) => {
+          const next = (prev + 1) % placeholderPrompts.length;
+          if (next === 0) setCycleCount(count => count + 1);
+          return next;
+        });
+      }, 1200); // Wait after full prompt
+      return () => clearTimeout(waitTimeout);
+    }
+  }, [typedLength, placeholderIndex, cycleCount]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -347,10 +371,10 @@ export const PrototypeC = (): JSX.Element => {
                     </span>
                   ) : (
                     <span
-                      className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-opacity duration-400 ${fade ? 'opacity-100' : 'opacity-0'}`}
+                      className={"pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-100"}
                       style={{ fontSize: '0.95em' }}
                     >
-                      {placeholderPrompts[placeholderIndex]}
+                      {placeholderPrompts[placeholderIndex].slice(0, typedLength)}
                     </span>
                   )
                 )}
