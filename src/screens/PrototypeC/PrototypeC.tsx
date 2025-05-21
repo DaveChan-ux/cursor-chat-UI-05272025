@@ -81,10 +81,10 @@ const initialMessages: Message[] = [
 export const placeholderPrompts = [
   "Create a chat message",
   "Send an LTK or rstyle link",
-  "Share a day in the life or a weekly recap",
+  "Share a day in the life",
   "Share a quote that resonated with you",
   "Provide book or movie recommendations",
-  "Share reflections, milestones, or random funny moments",
+  "Share reflections or funny moments",
 ];
 
 export const PrototypeC = (): JSX.Element => {
@@ -92,16 +92,22 @@ export const PrototypeC = (): JSX.Element => {
   const [newMessage, setNewMessage] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [fade, setFade] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cycle placeholder index every 3 seconds
+  // Cycle placeholder index every 2.5 seconds, with fade in/out
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fadeOut = setTimeout(() => setFade(false), 2000); // start fade out before change
+    const changePrompt = setTimeout(() => {
       setPlaceholderIndex((prev) => (prev + 1) % placeholderPrompts.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+      setFade(true);
+    }, 2500);
+    return () => {
+      clearTimeout(fadeOut);
+      clearTimeout(changePrompt);
+    };
+  }, [placeholderIndex]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -300,7 +306,7 @@ export const PrototypeC = (): JSX.Element => {
               <PaperclipIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
             </div>
           </Button>
-
+          {/* Animated Placeholder Input Area */}
           <div className={`flex-1 bg-[#f9f9fb] border border-solid border-[#e2e3e9] ${selectedMedia || newMessage.length > 0 ? 'rounded-[16px]' : 'rounded-[40px]'} transition-all duration-200`}>
             <div className="flex flex-col gap-2 p-2 h-auto min-h-[30px] justify-end">
               {selectedMedia && (
@@ -322,30 +328,47 @@ export const PrototypeC = (): JSX.Element => {
                   </Button>
                 </div>
               )}
-              <div className="flex-1">
+              <div className="relative w-full">
                 <Input
-                  placeholder={placeholderPrompts[placeholderIndex]}
+                  placeholder=" "
                   className="flex-1 bg-transparent outline-none border-none text-sm md:text-xs min-h-[30px] h-auto p-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
+                  aria-label={selectedMedia ? 'Add a caption to your uploaded media' : placeholderPrompts[placeholderIndex]}
                 />
+                {newMessage.length === 0 && (
+                  selectedMedia ? (
+                    <span
+                      className={"pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-100"}
+                      style={{ fontSize: '0.95em' }}
+                    >
+                      Add a caption to your uploaded media
+                    </span>
+                  ) : (
+                    <span
+                      className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-opacity duration-400 ${fade ? 'opacity-100' : 'opacity-0'}`}
+                      style={{ fontSize: '0.95em' }}
+                    >
+                      {placeholderPrompts[placeholderIndex]}
+                    </span>
+                  )
+                )}
               </div>
             </div>
           </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim() && !selectedMedia}
-          >
-            <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#c3c3c6] rounded-[100px]">
-              <ArrowUpIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
-            </div>
-          </Button>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
+          onClick={handleSendMessage}
+          disabled={!newMessage.trim() && !selectedMedia}
+        >
+          <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#c3c3c6] rounded-[100px]">
+            <ArrowUpIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
+          </div>
+        </Button>
       </div>
     </div>
   );
