@@ -16,6 +16,7 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { MediaGrid } from "../../components/ui/media-grid";
+import './styles.css';
 
 
 interface Media {
@@ -92,46 +93,24 @@ export const PrototypeC = (): JSX.Element => {
   const [newMessage, setNewMessage] = useState("");
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [typedLength, setTypedLength] = useState(0);
-  const [cycleCount, setCycleCount] = useState(0);
+  const [isFading, setIsFading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Typewriter effect for placeholder
+  // Fade effect for placeholder
   useEffect(() => {
-    // If cycling is complete and we're not on the first prompt, reset to first prompt and type it out
-    if (cycleCount >= 2) {
-      if (placeholderIndex !== 0) {
-        setPlaceholderIndex(0);
-        setTypedLength(0);
-      } else if (typedLength < placeholderPrompts[0].length) {
-        const timeout = setTimeout(() => {
-          setTypedLength((len) => len + 1);
-        }, 50);
-        return () => clearTimeout(timeout);
-      }
-      // Stop cycling after typing out the first prompt
-      return;
-    }
-    const currentPrompt = placeholderPrompts[placeholderIndex];
-    if (typedLength < currentPrompt.length) {
-      const timeout = setTimeout(() => {
-        setTypedLength((len) => len + 1);
-      }, 50); // Typing speed per letter
-      return () => clearTimeout(timeout);
-    } else {
-      // Wait before cycling to next prompt
-      const waitTimeout = setTimeout(() => {
-        setTypedLength(0);
-        setPlaceholderIndex((prev) => {
-          const next = (prev + 1) % placeholderPrompts.length;
-          if (next === 0) setCycleCount(count => count + 1);
-          return next;
-        });
-      }, 1200); // Wait after full prompt
-      return () => clearTimeout(waitTimeout);
-    }
-  }, [typedLength, placeholderIndex, cycleCount]);
+    const cyclePlaceholder = () => {
+      setIsFading(true);
+      setTimeout(() => {
+        setPlaceholderIndex((prev) => (prev + 1) % placeholderPrompts.length);
+        setIsFading(false);
+      }, 500); // Wait for fade out animation to complete
+    };
+
+    const interval = setInterval(cyclePlaceholder, 3000); // Change placeholder every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -310,9 +289,10 @@ export const PrototypeC = (): JSX.Element => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
-      <div className="flex-none flex w-full items-end justify-between gap-2 p-4 bg-white border-t border-[#e2e3e9]" style={{height: 'auto'}}>
-        <div className="flex w-full items-end gap-2">
+      {/* Input Area */}
+      <div className="flex-none w-full px-4 py-3 border-t border-[#e6e8f0] bg-white relative">
+        <div className="flex items-center gap-2">
+          {/* File Input */}
           <input
             type="file"
             ref={fileInputRef}
@@ -323,76 +303,72 @@ export const PrototypeC = (): JSX.Element => {
           <Button
             variant="ghost"
             size="icon"
-            className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
+            className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0"
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#eeeff2] rounded-[100px]">
               <PaperclipIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
             </div>
           </Button>
-          {/* Animated Placeholder Input Area */}
+
+          {/* Media Preview */}
+          {selectedMedia && (
+            <div className="relative flex-shrink-0 w-12 h-auto rounded-lg overflow-hidden">
+              {selectedMedia.type === 'image' ? (
+                <img src={selectedMedia.url} alt="Preview" className="w-full h-auto object-contain" />
+              ) : (
+                <video src={selectedMedia.url} className="w-full h-auto object-contain" />
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-0.5 right-0.5 w-6 h-6 p-0.5 bg-black/20 hover:bg-black/40"
+                onClick={handleRemoveMedia}
+                tabIndex={-1}
+              >
+                <span className="sr-only">Remove media</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x w-4 h-4 text-white"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+              </Button>
+            </div>
+          )}
+          
+          {/* Input Field and Placeholder */}
           <div className={`flex-1 bg-[#f9f9fb] border border-solid border-[#e2e3e9] ${selectedMedia || newMessage.length > 0 ? 'rounded-[16px]' : 'rounded-[40px]'} transition-all duration-200`}>
             <div className="flex flex-col gap-2 p-2 h-auto min-h-[30px] justify-end">
-              {selectedMedia && (
-                <div className="relative flex-shrink-0 w-12 h-auto rounded-lg overflow-hidden">
-                  {selectedMedia.type === 'image' ? (
-                    <img src={selectedMedia.url} alt="Preview" className="w-full h-auto object-contain" />
-                  ) : (
-                    <video src={selectedMedia.url} className="w-full h-auto object-contain" />
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-0.5 right-0.5 w-6 h-6 p-0.5 bg-black/20 hover:bg-black/40"
-                    onClick={handleRemoveMedia}
-                    tabIndex={-1}
-                  >
-                    <span className="sr-only">Remove media</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x w-4 h-4 text-white"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                  </Button>
-                </div>
-              )}
               <div className="relative w-full">
                 <Input
-                  placeholder=" "
-                  className="flex-1 bg-transparent outline-none border-none min-h-[30px] h-auto pl-3 py-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words" style={{ fontSize: '0.95em', display: 'flex', alignItems: 'center' }}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
+                  placeholder=" "
+                  className="flex-1 bg-transparent outline-none border-none min-h-[30px] h-auto pl-3 py-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words"
+                  style={{ fontSize: '0.95em' }}
                   aria-label={selectedMedia ? 'Add a caption to your uploaded media' : placeholderPrompts[placeholderIndex]}
                 />
-                {newMessage.length === 0 && (
-                  selectedMedia ? (
-                    <span
-                      className={"pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-100"}
-                      style={{ fontSize: '0.95em' }}
-                    >
-                      Add a caption to your uploaded media
+                {!newMessage && (
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                    <span className={isFading ? 'placeholder-fade-out' : 'placeholder-fade-in'}>
+                      {selectedMedia ? 'Add a caption to your uploaded media' : placeholderPrompts[placeholderIndex]}
                     </span>
-                  ) : (
-                    <span
-                      className={"pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground opacity-100"}
-                      style={{ fontSize: '0.95em' }}
-                    >
-                      {placeholderPrompts[placeholderIndex].slice(0, typedLength)}
-                    </span>
-                  )
+                  </div>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Send Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim() && !selectedMedia}
+          >
+            <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#c3c3c6] rounded-[100px]">
+              <ArrowUpIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
+            </div>
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="flex-shrink-0 flex w-8 h-8 items-center justify-center relative rounded-[100px] p-0 mb-1"
-          onClick={handleSendMessage}
-          disabled={!newMessage.trim() && !selectedMedia}
-        >
-          <div className="flex items-center justify-center px-3 py-0.5 relative flex-1 self-stretch grow bg-[#c3c3c6] rounded-[100px]">
-            <ArrowUpIcon className="w-5 h-5 ml-[-6.00px] mr-[-6.00px]" />
-          </div>
-        </Button>
       </div>
     </div>
   );
