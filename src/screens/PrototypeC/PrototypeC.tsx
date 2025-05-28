@@ -311,7 +311,7 @@ export const PrototypeC = (): JSX.Element => {
       </div>
 
       {/* Message Input */}
-      <div className="flex-none flex w-full items-end justify-between gap-2 p-4 bg-white border-t border-[#e2e3e9]" style={{height: selectedMedia || newMessage.length > 0 ? 'auto' : '72px'}}>
+      <div className="flex-none flex w-full items-end justify-between gap-2 p-4 bg-white border-t border-[#e2e3e9]" style={{height: 'auto'}}>
         <div className="flex w-full items-end gap-2">
           <input
             type="file"
@@ -355,7 +355,7 @@ export const PrototypeC = (): JSX.Element => {
               <div className="relative w-full">
                 <Input
                   placeholder=" "
-                  className="flex-1 bg-transparent outline-none border-none text-sm md:text-xs min-h-[30px] h-auto p-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words"
+                  className="flex-1 bg-transparent outline-none border-none min-h-[30px] h-auto pl-3 py-0 m-0 focus:ring-0 focus:outline-none placeholder:text-muted-foreground break-words" style={{ fontSize: '0.95em', display: 'flex', alignItems: 'center' }}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
