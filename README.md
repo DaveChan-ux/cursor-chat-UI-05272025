@@ -1,4 +1,19 @@
 
+
+
+
+https://github.com/user-attachments/assets/671d8405-3b8e-4349-85c4-c3c6cb4c47be
+
+# Chat UI Project
+
+Chat UI - input field, single image and media attach
+This chat UI project contains the following:
+1. Rotating input field prompts
+2. The ability to atttach a single image or video
+3. The ability to send a caption message
+4. The input field placeholder automatically changes if an attachment is detected. 
+
+
 ## Getting started
 
 > **Prerequisites:**
