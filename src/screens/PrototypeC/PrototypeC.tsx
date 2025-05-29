@@ -104,10 +104,10 @@ export const PrototypeC = (): JSX.Element => {
       setTimeout(() => {
         setPlaceholderIndex((prev) => (prev + 1) % placeholderPrompts.length);
         setIsFading(false);
-      }, 500); // Wait for fade out animation to complete
+      }, 300); // Wait for fade out animation to complete
     };
 
-    const interval = setInterval(cyclePlaceholder, 3000); // Change placeholder every 3 seconds
+    const interval = setInterval(cyclePlaceholder, 2000); // Change placeholder every 2 seconds
 
     return () => clearInterval(interval);
   }, []);
